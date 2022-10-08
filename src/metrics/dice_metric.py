@@ -4,7 +4,8 @@ class DiceMetric(object):
     def __init__(self, 
                 force_binary = False, 
                 per_image = False, 
-                drop_background = False):
+                drop_background = False,
+                **kwargs):
         self.force_binary = force_binary
         self.per_image = per_image
         self.drop_background = drop_background

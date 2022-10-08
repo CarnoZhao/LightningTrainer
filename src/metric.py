@@ -1,6 +1,6 @@
 from .metrics import metrics as registry
 
-def get_metric(cfg):
+def get_metric(cfg, dataset):
     """
     def metric_preprocess(val_step_output):
         return output
@@ -10,5 +10,5 @@ def get_metric(cfg):
     """
     cfg = cfg.copy()
     if isinstance(cfg, str):
-        return registry[cfg]()
-    return registry[cfg.pop("type")](**cfg)
+        return registry[cfg](dataset = dataset)
+    return registry[cfg.pop("type")](dataset = dataset, **cfg)

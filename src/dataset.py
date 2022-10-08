@@ -15,6 +15,7 @@ def get_data(cfg):
     batch_size = cfg.get("batch_size", 32) 
     stratified_by = cfg.get("stratified_by", None) 
     group_by = cfg.get("group_by", None)
+    fold_by = cfg.get("fold_by", "fold")
     dataset_cfg = cfg.get("dataset", {})
     
     if data_type is not None:
@@ -33,7 +34,7 @@ def get_data(cfg):
     elif group_by is not None:
         split = GroupKFold(num_folds)
         train_idx, valid_idx = list(split.split(df, groups = df[group_by]))[fold]
-    elif "fold" in df.columns:
+    elif fold_by in df.columns:
         train_idx = np.where(df.fold != fold)[0]
         valid_idx = np.where(df.fold == (fold if fold != -1 else 0))[0]
     else:

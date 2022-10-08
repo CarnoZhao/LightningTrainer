@@ -50,7 +50,8 @@ def get_trainer(args, cfg):
         logger = logger,
         callbacks = callbacks,
         log_every_n_steps = cfg.train.log_step,
-        check_val_every_n_epoch = cfg.train.val_interval,
+        val_check_interval = 1.0 if isinstance(cfg.train.val_interval, int) else cfg.train.val_interval,
+        check_val_every_n_epoch = 1 if isinstance(cfg.train.val_interval, float) else cfg.train.val_interval,
     )
 
     return trainer

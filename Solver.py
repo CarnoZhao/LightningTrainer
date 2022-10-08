@@ -22,10 +22,11 @@ class Model(pl.LightningModule):
         self.cfg = cfg
         self.model = get_model(self.cfg.model)
         self.criterion = get_loss(self.cfg.loss)
-        self.metric = get_metric(self.cfg.metric)
 
         self.prepare_data()
         self.save_hyperparameters(self.cfg)
+
+        self.metric = get_metric(self.cfg.metric, self.ds_valid)
 
     def prepare_data(self):
         self.data = get_data(self.cfg.data)
