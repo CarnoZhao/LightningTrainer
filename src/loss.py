@@ -51,7 +51,7 @@ def _get_loss(cfg):
     cfg = cfg.copy()
     loss_type = cfg.pop("type")
     if loss_type.startswith("nn."):
-        func = getattr(nn, loss_type[3:])(**cfg)
+        return getattr(nn, loss_type[3:])(**cfg)
     else:
         return registry[loss_type](**cfg)
 

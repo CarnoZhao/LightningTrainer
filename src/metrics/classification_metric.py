@@ -1,20 +1,27 @@
 import torch
+import numpy as np
 
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
+
+def roc_auc_score_uni(y_true, y_score, sample_weight=None, max_fpr=None):
+    if len(np.unique(y_true)) != 2:
+        return 0
+    else:
+        return roc_auc_score(y_true, y_score, sample_weight, max_fpr)
 
 class ClassificationMetric(object):
     def __init__(self, 
                 metrics = [],
                 softmax = True,
-                force_binary = False):
-            self.metrics = metrics
+                force_binary = True):
             self.metrics_dict = {
                 "acc": accuracy_score,
                 "pre": precision_score,
                 "rec": recall_score,
-                "auc": roc_auc_score,
+                "auc": roc_auc_score_uni,
                 "f1": f1_score
             }
+            self.metrics = metrics if metrics else list(self.metrics_dict.keys())
             self.keep_logits = {"auc"}
             assert all([_ in self.metrics_dict for _ in self.metrics])
             self.softmax = softmax
