@@ -1,6 +1,6 @@
-name: in_hos
-version: hos3_f0
-fold: &fold 0
+name: hos_sz224
+version: hos3/f3
+fold: &fold 3
 hos_id: &hos_id 3
 seed: 0
 
@@ -22,7 +22,6 @@ metric:
 data:
   type: NasoData
   fold: *fold
-  num_folds: 4
   batch_size: 64
   stratified_by: null
   group_by: null
@@ -30,28 +29,26 @@ data:
   dataset:
     data_dir: crop_images
     use_hos_id: *hos_id
-    resize: &resize 384
-    albu_norm: &albu_norm {type: Normalize, mean: [0.53017267, 0.31335013, 0.31556818], std: [0.33659712, 0.23721003, 0.24286168]}
+    resize: &resize 224
+    albu_norm: &albu_norm {type: Normalize, 
+      mean: [0.53017267, 0.31335013, 0.31556818], 
+      std: [0.33659712, 0.23721003, 0.24286168]}
     trans: {
       train: {type: Compose, transforms: [
         {type: Resize, height: *resize, width: *resize},
         {type: HorizontalFlip, p: 0.5},
         {type: VerticalFlip, p: 0.5},
         {type: RandomRotate90, p: 0.5},
-        # {type: ShiftScaleRotate, rotate_limit: 45, border_mode: 0, value: 0, mask_value: 0, p: 0.5},
         {type: OneOf, transforms: [
           {type: ElasticTransform, p: 0.5},
           {type: GridDistortion, p: 0.5},
-        #   {type: OpticalDistortion, p: 0.5},
         ], p: 1.0},
         {type: ColorJitter, p: 0.5},
-        # {type: GaussNoise, p: 0.5},
         *albu_norm,
         {type: ToTensorV2},
       ]},
       val: {type: Compose, transforms: [
         {type: Resize, height: *resize, width: *resize},
-        # {type: ToGray, p: 1.0},
         *albu_norm,
         {type: ToTensorV2},
       ]}
@@ -69,7 +66,7 @@ train:
 
   # trainer
   monitor: val_auc
-  log_step: 10
+  log_step: 40
   val_interval: 1
   swa: False
   grad_clip: 2.0

@@ -1,6 +1,7 @@
-name: whole_sz224
-version: f3
-fold: &fold 3
+name: fed_sz224_blk4_ft10
+version: hos0/f0
+fold: &fold 0
+hos_id: &hos_id 0
 seed: 0
 
 model:
@@ -25,8 +26,10 @@ data:
   stratified_by: null
   group_by: null
   fold_by: fold
+  num_workers: 4
   dataset:
     data_dir: crop_images
+    use_hos_id: *hos_id
     resize: &resize 224
     albu_norm: &albu_norm {type: Normalize, 
       mean: [0.53017267, 0.31335013, 0.31556818], 
@@ -70,3 +73,20 @@ train:
   grad_clip: 2.0
   strategy: dp
   save_topk: 1
+
+  # federated
+  federated:
+    type: FedAvg
+    client_num: 4
+    client_id: *hos_id
+    agg_interval: 1
+    finetune_epochs: 10
+    host_port: 55555
+    skipped_layer: [
+      model.model.classifier,
+      model.model.conv_head,
+      model.model.bn2,
+      model.model.blocks.6,
+      model.model.blocks.5,
+      model.model.blocks.4,
+    ]

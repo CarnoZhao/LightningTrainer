@@ -2,11 +2,13 @@ import torch
 from torch.optim.lr_scheduler import OneCycleLR, CosineAnnealingWarmRestarts
 from pl_bolts.optimizers.lr_scheduler import LinearWarmupCosineAnnealingLR
 
-def get_optimizer(self, cfg):
+def get_optimizer(self, cfg, optimizer_only = False):
     cfg = cfg.copy()
     opt_type = cfg.pop("optimizer")
-    sch_type = cfg.pop("scheduler")
     optimizer = eval("get_" + opt_type)(self, cfg)
+    if optimizer_only:
+        return optimizer
+    sch_type = cfg.pop("scheduler")
     scheduler = eval("get_" + sch_type)(self, cfg, optimizer)
     return optimizer, scheduler
 

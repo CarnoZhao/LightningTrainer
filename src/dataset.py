@@ -8,6 +8,7 @@ from torch.utils.data import DataLoader
 from .datasets import datasets as registry
 
 def get_data(cfg):
+    cfg = cfg.copy()
     data_type = cfg.type 
     fold = cfg.get("fold", 0)
     num_workers = cfg.get("num_workers", 16)
@@ -17,13 +18,9 @@ def get_data(cfg):
     group_by = cfg.get("group_by", None)
     fold_by = cfg.get("fold_by", "fold")
     dataset_cfg = cfg.get("dataset", {})
-    
-    if data_type is not None:
-        DataClass = registry[data_type]
-    else:
-        raise NotImplementedError()
+    sampler_cfg = cfg.get("sampler", None)
 
-    df = DataClass.prepare(**dataset_cfg)
+    df = registry[data_type].prepare(**dataset_cfg)
 
     if stratified_by is not None and group_by is not None:
         split = StratifiedGroupKFold(num_folds, shuffle = True, random_state = 0)
@@ -55,13 +52,17 @@ def get_data(cfg):
         **dataset_cfg         
     }
 
-    ds_train = DataClass(**train_cfg)
-    ds_valid = DataClass(**valid_cfg)
+    ds_train = registry[data_type](**train_cfg)
+    ds_valid = registry[data_type](**valid_cfg)
 
-    sampler = torchsampler.ImbalancedDatasetSampler(ds_train) if ds_train.balance_key else None
+    if sampler_cfg is not None:
+        sampler = {"sampler": registry[sampler_cfg.pop("type")](data_source = ds_train, **sampler_cfg)}
+    elif ds_train.balance_key:
+        sampler = {"sampler": torchsampler.ImbalancedDatasetSampler(ds_train)}
+    else:
+        sampler = {"shuffle": True}
 
-    def dl_train(shuffle = True, drop_last = True, num_workers = num_workers, sampler = sampler):
-        sampler = {"sampler": sampler} if sampler else {"shuffle": shuffle}
+    def dl_train(shuffle = True, drop_last = True, num_workers = num_workers):
         return DataLoader(ds_train, 
                         batch_size, 
                         drop_last = drop_last, 

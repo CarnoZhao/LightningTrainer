@@ -1,12 +1,17 @@
 import os
+
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import CSVLogger
 from pytorch_lightning.callbacks import ModelCheckpoint, RichProgressBar, StochasticWeightAveraging, LearningRateMonitor
+
 import torch
 torch.backends.cudnn.enabled = True
 torch.backends.cudnn.benchmark = True
+
 import cv2
 cv2.setNumThreads(4)
+
+from .federated import callbacks as registry
 
 def get_trainer(args, cfg):
 
@@ -35,16 +40,18 @@ def get_trainer(args, cfg):
     ]
     if cfg.train.get("swa", False):
         callbacks.append(StochasticWeightAveraging())
+
+    if cfg.train.get("federated", False):
+        callbacks.append(registry[cfg.train.federated.pop("type")](**cfg.train.federated))
         
     # trainer
-    grad_clip = cfg.train.get("grad_clip", 0)
     trainer = pl.Trainer(
         accelerator = "gpu",
         gpus = list(range(len(args.gpus.split(",")))), 
         precision = 16, 
         strategy = cfg.train.get("strategy", "dp"),
         sync_batchnorm = cfg.train.get("strategy", "dp") == "ddp",
-        gradient_clip_val = grad_clip,
+        gradient_clip_val = cfg.train.get("grad_clip", 0),
         accumulate_grad_batches = cfg.train.get("grad_acc", 1),
         max_epochs = cfg.train.num_epochs,
         logger = logger,

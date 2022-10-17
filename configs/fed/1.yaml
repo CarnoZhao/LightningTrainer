@@ -1,0 +1,11 @@
+version: hos1/f0
+hos_id: &hos_id 1
+
+data:
+  dataset:
+    use_hos_id: *hos_id
+
+train:
+  federated:
+    client_id: *hos_id
+    client_weight: 1.0

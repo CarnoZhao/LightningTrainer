@@ -71,7 +71,11 @@ class Model(pl.LightningModule):
 
 if __name__ == "__main__":
     for cfg in args.config:
-        cfg = OmegaConf.load(cfg)
+        if os.path.exists(os.path.join(os.path.dirname(cfg), "_base_.yaml")):
+            base_cfg = os.path.join(os.path.dirname(cfg), "_base_.yaml")
+            cfg = OmegaConf.merge(OmegaConf.load(base_cfg), OmegaConf.load(cfg))
+        else:
+            cfg = OmegaConf.load(cfg)
         if "seed" in cfg: pl.seed_everything(cfg.seed)
 
         model = Model(cfg)
