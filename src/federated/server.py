@@ -5,7 +5,8 @@ from federatedscope.core.communication import gRPCCommManager
 from federatedscope.core.message import Message
 from omegaconf import OmegaConf
 
-from .aggregator import callbacks
+from ..builder.registry import REGISTRY
+CALLBACK = REGISTRY["CALLBACK"]
 
 class Server(object):
     def __init__(self, client_num, fed_type):
@@ -16,7 +17,7 @@ class Server(object):
             client_num = self.client_num)
         self.clients = []
 
-        self.fed_func = callbacks[fed_type].fed_func
+        self.fed_func = CALLBACK[fed_type].fed_func
 
     def join_clients(self):
         while len(self.clients) < self.client_num:

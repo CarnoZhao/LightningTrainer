@@ -1,4 +1,5 @@
-from .metrics import metrics as registry
+from ..builder.registry import REGISTRY
+METRIC = REGISTRY["METRIC"]
 
 def get_metric(cfg, dataset):
     """
@@ -10,5 +11,5 @@ def get_metric(cfg, dataset):
     """
     cfg = cfg.copy()
     if isinstance(cfg, str):
-        return registry[cfg](dataset = dataset)
-    return registry[cfg.pop("type")](dataset = dataset, **cfg)
+        return METRIC[cfg](dataset = dataset)
+    return METRIC[cfg.pop("type")](dataset = dataset, **cfg)

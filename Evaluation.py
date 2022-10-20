@@ -1,34 +1,17 @@
 import os
-import numpy as np
-import pandas as pd
 import argparse
 import warnings
+import numpy as np
+import pandas as pd
+from rich.table import Table
+from rich.console import Console
+from omegaconf import OmegaConf
 warnings.filterwarnings("ignore")
 parser = argparse.ArgumentParser()
-parser.add_argument("--method", dest = "method", type = str, default = "last")
+parser.add_argument("--config", dest = "config", type = str)
 args = parser.parse_args()
 
-tags = {
-    "whole": [
-        # "",
-        "sz224"
-        # "30e"
-    ],
-    "hos": [
-        # "",
-        "sz224",
-        # "30e"
-    ],
-    "fed": [
-        # "",
-        # "blk6",
-        # "blk6_ft10",
-        "sz224_blk6_ft10"
-    ]
-}
-method = args.method
-
-def get_whole(tag):
+def get_whole(tag, method):
     aucs = []
     for fold in range(4):
         if os.path.exists(f"./logs/{tag}/f{fold}/metrics.csv"):
@@ -40,7 +23,7 @@ def get_whole(tag):
             aucs.append(np.array([np.nan] * 4))
     return np.stack(aucs).mean(0) * 100
 
-def get_inhos(tag):
+def get_inhos(tag, method):
     aucs = np.zeros((4, 4))
     aucs[:,:] = np.nan
     for fold in range(4):
@@ -53,53 +36,60 @@ def get_inhos(tag):
                 aucs[fold][hos] = auc
     return np.stack(aucs).mean(0) * 100
 
-def get(k, tag):
+def get(k, tag, method):
     tag = k if not tag else f"{k}_{tag}"
-    if k == "whole":
-        ret = get_whole(tag)
+    if k.startswith("whole"):
+        ret = get_whole(tag, method)
     else:
-        ret = get_inhos(tag)
+        ret = get_inhos(tag, method)
     return np.concatenate([ret, ret.mean(keepdims = True)])
 
-df = []
-for k in tags:
-    for tag in tags[k]:
-        for i, value in enumerate(get(k, tag)):
-            df.append([k, tag, str(i) if i != 4 else "mean", value])
+if __name__ == "__main__":
+    config = OmegaConf.load(args.config)
+    for exp_name, tags in config.items():
+        method = tags.pop("method", "last")
+        show = tags.pop("show", "rel")
+        df = []
+        for k in tags:
+            for tag in tags[k]:
+                if OmegaConf.is_list(tag):
+                    full_tag = "_".join(tag)
+                    main_tag = tag[0]
+                else:
+                    full_tag = tag
+                    main_tag = tag
+                for i, value in enumerate(get(k, full_tag, method)):
+                    df.append([k, main_tag, str(i) if i != 4 else "mean", value])
 
-df = pd.DataFrame(df, columns = ["version", "tag", "hos_id", "auc_ao4"]).set_index(["tag", "hos_id"])
-df.auc_ao4.iloc[5:] -= np.tile(np.array(df.auc_ao4.iloc[:5]), len(df) // 5 - 1)
+        df = pd.DataFrame(df, columns = ["version", "tag", "hos_id", "auc_ao4"]).set_index(["tag", "hos_id"])
+        if show == "rel":
+            df.auc_ao4.iloc[5:] -= np.tile(np.array(df.auc_ao4.iloc[:5]), len(df) // 5 - 1)
 
-tab = []
-for g, d in df.groupby("version", as_index = False, sort = False):
-    d = d.drop(columns = ["version"])
-    d.columns = [g]
-    tab.append(d)
-tab = pd.concat(tab, axis = 1).round(4).reset_index().set_index("tag")
-# print(tab)
+        tab = []
+        for g, d in df.groupby("version", as_index = False, sort = False):
+            d = d.drop(columns = ["version"])
+            d.columns = [g]
+            tab.append(d)
+        tab = pd.concat(tab, axis = 1).round(4).reset_index().set_index("tag")
 
-from rich.console import Console
-from rich.table import Table
+        table = Table(title = exp_name, row_styles = ["", "dim", "", "dim", "bold"])
 
-table = Table(row_styles = ["", "dim", "", "dim", "bold"])
+        table.add_column("tag", justify = "middle", style = "cyan")
+        table.add_column("hos_id", justify = "right", style = "magenta")
+        for i, col in enumerate(tab.columns[1:]):
+            table.add_column(col.replace("_sz224", ""), justify = "right", style = ["red", "green", "blue"][i % 3])
 
-table.add_column("tag", justify = "middle", style = "cyan")
-table.add_column("hos_id", justify = "right", style = "magenta")
-table.add_column("whole", justify = "right", style = "red")
-table.add_column("hos", justify = "right", style = "green")
-table.add_column("fed", justify = "right", style = "blue")
-
-pre_idx = None
-for row_idx, row in tab.iterrows():
-    if row_idx != pre_idx:
-        table.add_section()
-        pre_idx = row_idx
-    else:
-        row_idx = ""
-    table.add_row(row_idx, row.hos_id, *["-" if np.isnan(x) else f"{x:.2f}" for k, x in row.items() if k != "hos_id"])
+        pre_idx = None
+        for row_idx, row in tab.iterrows():
+            if row_idx != pre_idx:
+                table.add_section()
+                pre_idx = row_idx
+            else:
+                row_idx = ""
+            table.add_row(row_idx, row.hos_id, *["-" if np.isnan(x) else f"{x:.2f}" for k, x in row.items() if k != "hos_id"])
 
 
-console = Console()
-console.print(table)
+        console = Console()
+        console.print(table)
 
 

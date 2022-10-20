@@ -6,11 +6,11 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--config-dir", dest = "config", default = "configs/fed", type = str)
 args = parser.parse_args()
 
+if __name__ == "__main__":
+    configs = glob.glob(os.path.join(args.config, "*"))
+    base_config = [_ for _ in configs if "_base_.yaml" in _][0]
+    fed_type = OmegaConf.load(base_config).train.federated.type
 
-configs = glob.glob(os.path.join(args.config, "*"))
-base_config = [_ for _ in configs if "_base_.yaml" in _][0]
-fed_type = OmegaConf.load(base_config).train.federated.type
-
-from src.federated import Server
-Server(len(configs) - 1, fed_type).run()
+    from src.federated import Server
+    Server(len(configs) - 1, fed_type).run()
 

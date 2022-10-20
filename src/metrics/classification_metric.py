@@ -3,12 +3,15 @@ import numpy as np
 
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
 
+from ..builder.registry import register
+
 def roc_auc_score_uni(y_true, y_score):
     if len(np.unique(y_true)) != 2:
         return 0
     else:
         return roc_auc_score(y_true, y_score)
 
+@register(name = "METRIC")
 class ClassificationMetric(object):
     def __init__(self, 
                 metrics = [],

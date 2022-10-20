@@ -5,9 +5,12 @@ import numpy as np
 import pandas as pd
 
 from torch.utils.data import Dataset
-from .builder import build_trans
+
+from ...builder.registry import register
+from ...builder.dataset import get_trans
 from .img_dataset import ImgData
 
+@register(name = "DATASET")
 class NasoData(ImgData):
     @staticmethod
     def prepare(data_dir = "images", use_hos_id = None, **dataset_cfg):

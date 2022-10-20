@@ -1,0 +1,34 @@
+base: {
+  method: last,
+  show: raw,
+  whole_sz224: [30e],
+  hos_sz224: [30e],
+  hos_smp_sz224: [30e],
+  fed_sz224: [
+    30e,
+    blk4_30e,
+    30e_ft15,
+    blk4_30e_ft15,
+  ],
+  fed_smp_sz224: [
+    blk4_30e_ft15,
+  ],
+}
+
+more_epochs: {
+  method: last,
+  show: raw,
+  whole_sz224: [30e, 40e, 50e],
+  hos_sz224: [30e, 40e, 50e],
+  hos_smp_sz224: [30e, 40e, 50e],
+  fed_smp_sz224_blk4: [[30e, ft15], [40e, ft20], [50e, ft25]],
+}
+
+blocks: {
+  method: last,
+  show: raw,
+  fed_sz224_blk2: [30e_ft15],
+  fed_sz224_blk4: [30e_ft15],
+  fed_sz224_blk6: [30e_ft15],
+  fed_sz224_fc: [30e_ft15],
+}

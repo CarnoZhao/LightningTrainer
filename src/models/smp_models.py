@@ -4,6 +4,9 @@ import torch.nn.functional as F
 
 import segmentation_models_pytorch as smp
 
+from ..builder.registry import register
+
+@register(name = "MODEL")
 class SMPModel(nn.Module):
     def __init__(self, 
                 model_type = "Unet", 

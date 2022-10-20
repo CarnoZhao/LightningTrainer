@@ -1,10 +1,11 @@
-version: hos2/f0
 hos_id: &hos_id 2
 
 data:
   dataset:
     use_hos_id: *hos_id
-
+  # sampler:
+  #   replacement: True
+  #   multiple_times: 2
 train:
   federated:
     client_id: *hos_id

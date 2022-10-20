@@ -3,8 +3,9 @@ hos_id: &hos_id 3
 data:
   dataset:
     use_hos_id: *hos_id
-  # sampler:
-  #   multiple_times: 1
+  sampler:
+    replacement: True
+    multiple_times: 1
 train:
   federated:
     client_id: *hos_id

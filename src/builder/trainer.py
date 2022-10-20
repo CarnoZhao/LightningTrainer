@@ -1,19 +1,15 @@
 import os
-
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import CSVLogger
 from pytorch_lightning.callbacks import ModelCheckpoint, RichProgressBar, StochasticWeightAveraging, LearningRateMonitor
 
-import torch
-torch.backends.cudnn.enabled = True
-torch.backends.cudnn.benchmark = True
+from .registry import REGISTRY
+CALLBACK = REGISTRY["CALLBACK"]
 
-import cv2
-cv2.setNumThreads(4)
 
-from .federated import callbacks as registry
-
-def get_trainer(args, cfg):
+def get_trainer(cfg):
+    cfg = cfg.copy()
+    if "seed" in cfg: pl.seed_everything(cfg.seed)
 
     # logger
     logger = [
@@ -22,7 +18,6 @@ def get_trainer(args, cfg):
             version = cfg.version, 
             flush_logs_every_n_steps = cfg.train.log_step),
     ]
-
 
     # callbacks
     monitor = cfg.train.get("monitor", "valid_metric")
@@ -42,12 +37,12 @@ def get_trainer(args, cfg):
         callbacks.append(StochasticWeightAveraging())
 
     if cfg.train.get("federated", False):
-        callbacks.append(registry[cfg.train.federated.pop("type")](**cfg.train.federated))
+        callbacks.append(CALLBACK[cfg.train.federated.pop("type")](**cfg.train.federated))
         
     # trainer
     trainer = pl.Trainer(
         accelerator = "gpu",
-        gpus = list(range(len(args.gpus.split(",")))), 
+        gpus = list(range(len(cfg.gpus.split(",")))), 
         precision = 16, 
         strategy = cfg.train.get("strategy", "dp"),
         sync_batchnorm = cfg.train.get("strategy", "dp") == "ddp",

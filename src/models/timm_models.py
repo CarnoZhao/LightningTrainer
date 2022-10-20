@@ -3,6 +3,9 @@ import torch.nn as nn
 
 import timm
 
+from ..builder.registry import register
+
+@register(name = "MODEL")
 class TIMMModel(nn.Module):
     def __init__(self, 
                 model_name = "resnet18",

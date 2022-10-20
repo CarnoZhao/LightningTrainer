@@ -5,11 +5,9 @@ from base64 import b64encode, b64decode
 import torch
 from pytorch_lightning.callbacks import Callback
 
-from ..optimizer import get_optimizer
-
-
 from .client import Client
 
+from ..builder.registry import register
 
 def encode(stt):
     io = BytesIO()
@@ -23,6 +21,7 @@ def decode(content):
     stt = torch.load(io)
     return stt
 
+@register(name = "CALLBACK")
 class FedAvg(Callback):
     def __init__(self, agg_interval = 1, finetune_epochs = 0, skipped_layer = [], **client_args):
         self.client = Client(**client_args)
@@ -62,6 +61,7 @@ class FedAvg(Callback):
     def on_fit_end(self, trainer, pl_module):
         self.client.end()
 
+@register(name = "CALLBACK")
 class FedAvgWeighted(FedAvg):
     def __init__(self, client_weight, **client_args):
         self.client = Client(**client_args)
@@ -87,6 +87,7 @@ class FedAvgWeighted(FedAvg):
         pl_module.load_state_dict(decode(content))
         return
 
+@register(name = "CALLBACK")
 class FedAvgOpt(FedAvg):
     @staticmethod
     def fed_func(contents):
@@ -112,10 +113,3 @@ class FedAvgOpt(FedAvg):
         pl_module.load_state_dict(decode(content[0]))
         trainer.optimizers[0].load_state_dict(decode(content[1]))
         return
-  
-
-callbacks = {_.__name__: _ for _ in [
-    FedAvg,
-    FedAvgWeighted,
-    FedAvgOpt,
-]}

@@ -1,7 +1,7 @@
-name: fed_sz224_blk2_30e_ft15
+name: fed_smp_sz224_blk4_${train.num_epochs}e_ft${train.federated.finetune_epochs}
+version: hos${hos_id}/f${fold}
 fold: &fold 3
 hos_id: &hos_id 0
-version: hos${hos_id}/f${fold}
 seed: 0
 
 model:
@@ -27,8 +27,8 @@ data:
   group_by: null
   fold_by: fold
   num_workers: 4
-  # sampler:
-  #   type: MultiRandomSampler
+  sampler:
+    type: MultiRandomSampler
   dataset:
     data_dir: crop_images
     use_hos_id: *hos_id
@@ -91,6 +91,4 @@ train:
       model.model.blocks.6,
       model.model.blocks.5,
       model.model.blocks.4,
-      model.model.blocks.3,
-      model.model.blocks.2,
     ]

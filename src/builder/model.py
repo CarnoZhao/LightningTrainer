@@ -4,11 +4,12 @@ import torch.nn.functional as F
 import os
 import glob
 
-from .models import models as registry
+from ..builder.registry import REGISTRY
+MODEL = REGISTRY["MODEL"]
 
 def get_model(cfg):
     cfg = cfg.copy()
-    model = registry[cfg.pop("type")](**cfg)
+    model = MODEL[cfg.pop("type")](**cfg)
     
     if "load_from" in cfg and cfg.load_from is not None:
         if not os.path.exists(cfg.load_from):

@@ -1,6 +1,6 @@
-name: whole_sz224
-version: f3
+name: whole_sz224_${train.num_epochs}e
 fold: &fold 3
+version: f${fold}
 seed: 0
 
 model:

@@ -1,5 +1,8 @@
 import torch
 
+from ..builder.registry import register
+
+@register(name = "METRIC")
 class DiceMetric(object):
     def __init__(self, 
                 force_binary = False, 

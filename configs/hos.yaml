@@ -1,7 +1,7 @@
-name: hos_sz224
-version: hos3/f3
+name: hos_sz224_${train.num_epochs}e
 fold: &fold 3
 hos_id: &hos_id 3
+version: hos${hos_id}/f${fold}
 seed: 0
 
 model:
