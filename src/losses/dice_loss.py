@@ -2,6 +2,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from ..builder.registry import register
+
+@register(name = "LOSS")
 class DiceLoss(nn.Module):
     def __init__(self, ignore_index = 255):
         super().__init__()

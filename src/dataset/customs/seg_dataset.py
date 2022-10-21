@@ -5,8 +5,11 @@ import numpy as np
 import pandas as pd
 
 from torch.utils.data import Dataset
-from .builder import build_trans
 
+from ...builder.registry import register
+from ...builder.dataset import get_trans
+
+@register(name = "DATASET")
 class SegData(Dataset):
     def __init__(self, df, phase, 
             trans = None, 
@@ -44,17 +47,17 @@ class SegData(Dataset):
             self.mosaic_center = mosaic.get("center", (0.25, 0.75))
             pre_trans = trans.get(phase, None)[:mosaic_at]
             post_trans = trans.get(phase, None)[mosaic_at + 1:]
-            self.trans = build_trans(
+            self.trans = get_trans(
                 pre_trans, 
                 T = trans.get("type", "A"),
                 trans_args = trans.get("trans_args", {}))
-            self.post_trans = build_trans(
+            self.post_trans = get_trans(
                 post_trans, 
                 T = trans.get("type", "A"),
                 trans_args = trans.get("trans_args", {}))
         else:
             self.use_mosaic = False
-            self.trans = build_trans(
+            self.trans = get_trans(
                 trans.get(phase, None), 
                 T = trans.get("type", "A"),
                 trans_args = trans.get("trans_args", {}))

@@ -1,0 +1,52 @@
+loss: 
+  type: nn.CrossEntropyLoss
+
+metric: 
+  type: ClassificationMetric
+
+data:
+  type: ImgData
+  fold: *fold
+  batch_size: 64
+  stratified_by: null
+  group_by: null
+  fold_by: fold
+  dataset:
+    data_dir: images
+    resize: &resize 224
+    albu_norm: &albu_norm {type: Normalize}
+    trans: {
+      train: {type: Compose, transforms: [
+        {type: Resize, height: *resize, width: *resize},
+        {type: HorizontalFlip, p: 0.5},
+        {type: VerticalFlip, p: 0.5},
+        {type: RandomRotate90, p: 0.5},
+        {type: ColorJitter, p: 0.5},
+        *albu_norm,
+        {type: ToTensorV2},
+      ]},
+      val: {type: Compose, transforms: [
+        {type: Resize, height: *resize, width: *resize},
+        *albu_norm,
+        {type: ToTensorV2},
+      ]}
+    }
+
+train:
+  # optimizer
+  optimizer: adam
+  learning_rate: 1e-4
+  weight_decay: 1e-2
+
+  # scheduler
+  num_epochs: 20
+  scheduler: one_cycle
+
+  # trainer
+  monitor: val_acc
+  log_step: 50
+  val_interval: 1
+  swa: False
+  grad_clip: 2.0
+  strategy: dp
+  save_topk: 1

@@ -8,6 +8,9 @@ def raise_(ex):
 try:
     from monai.networks import nets
 
+    from ..builder.registry import register
+
+    @register(name = "MODEL")
     class MonaiModel(nn.Module):
         def __init__(self, model_type, **kwargs):
             super().__init__()

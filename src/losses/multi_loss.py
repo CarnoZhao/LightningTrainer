@@ -1,11 +1,12 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from omegaconf import OmegaConf
-
-from .losses import losses as registry
 from collections import defaultdict
 
+from ..builder.registry import register
+from ..builder.loss import _get_loss
+
+@register(name = "LOSS")
 class MultiLoss(nn.Module):
     def __init__(self, loss_cfg):
         super(MultiLoss, self).__init__()
@@ -25,6 +26,7 @@ class MultiLoss(nn.Module):
         losses["loss"] = sum(losses.values())
         return losses
 
+@register(name = "LOSS")
 class MultiInputLoss(nn.Module):
     def __init__(self, func, weight):
         super(MultiInputLoss, self).__init__()
@@ -45,30 +47,3 @@ class MultiInputLoss(nn.Module):
         for k in losses:
             losses[k] /= sum_weights
         return losses
-
-
-def _get_loss(cfg):
-    cfg = cfg.copy()
-    loss_type = cfg.pop("type")
-    if loss_type.startswith("nn."):
-        return getattr(nn, loss_type[3:])(**cfg)
-    else:
-        return registry[loss_type](**cfg)
-
-def get_loss(cfg):
-    cfg = cfg.copy()
-    if OmegaConf.is_dict(cfg) and "losses" in cfg:
-        multi_inputs = cfg.pop("multi_inputs", False)
-        input_weights = cfg.pop("input_weights", None)
-        cfg = cfg.losses
-    elif OmegaConf.is_list(cfg):
-        multi_inputs = False
-    elif OmegaConf.is_dict(cfg) and "losses" not in cfg:
-        multi_inputs = cfg.pop("multi_inputs", False)
-        input_weights = cfg.pop("input_weights", None)
-        cfg = [cfg]
-
-    func = MultiLoss(cfg)
-    if multi_inputs:
-        func = MultiInputLoss(func, input_weights)
-    return func

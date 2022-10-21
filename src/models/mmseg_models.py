@@ -11,7 +11,9 @@ from .mmseg.necks import NECKS
 from .mmseg.utils.ops import resize
 from .mmseg.blocks.layer_norm import LayerNorm
 
+from ..builder.registry import register
 
+@register(name = "MODEL")
 class MMSegModel(nn.Module):
     def __init__(self, 
                 backbone,

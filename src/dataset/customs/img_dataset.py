@@ -5,8 +5,11 @@ import numpy as np
 import pandas as pd
 
 from torch.utils.data import Dataset
-from .builder import build_trans
 
+from ...builder.registry import register
+from ...builder.dataset import get_trans
+
+@register(name = "DATASET")
 class ImgData(Dataset):
     def __init__(self, df, phase, 
             trans = None, 
@@ -36,7 +39,7 @@ class ImgData(Dataset):
         self.balance_key = balance_key if phase == "train" else None
 
     def prepare_trans(self, trans, phase):
-        self.trans = build_trans(
+        self.trans = get_trans(
             trans.get(phase, None), 
             T = trans.get("type", "A"),
             trans_args = trans.get("trans_args", {}))

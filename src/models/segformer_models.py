@@ -4,6 +4,9 @@ import torch.nn.functional as F
 
 import transformers
 
+from ..builder.registry import register
+
+@register(name = "MODEL")
 class Segformer(nn.Module):
     def __init__(self,  
                 model_name = "b0",
